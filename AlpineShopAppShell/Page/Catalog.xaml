@@ -22,8 +22,7 @@
 
             </HorizontalStackLayout>
 
-            <!-- Кнопка добавления товара (только админ) -->
-            <Button x:Name="AddButton" Text="Добавить товар" IsVisible="False" Clicked="OnAddClicked"/>
+            <Button x:Name="AddButton" Text="Добавить товар"  IsVisible="{Binding Source={x:Reference CatalogPage}, Path=IsAdmin}" Clicked="OnAddClicked"/>
 
             <!-- Сетка каталога -->
             <CollectionView x:Name="ProductsView" ItemsLayout="VerticalGrid, 2"  Margin="5" SelectionMode="None">
