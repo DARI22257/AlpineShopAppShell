@@ -29,8 +29,8 @@ namespace AlpineShop.Models
 
         public static async Task InitializeAsync()
         {
+            // USERS
             var users = await LoadAsync<List<User>>(UsersFile);
-
             if (users == null || users.Count == 0)
             {
                 Users = new List<User>
@@ -50,25 +50,54 @@ namespace AlpineShop.Models
                 await SaveUsersAsync();
             }
 
+            // PRODUCTS
             var products = await LoadAsync<List<Product>>(ProductsFile);
-
             if (products == null || products.Count == 0)
             {
                 Products = new ObservableCollection<Product>(new List<Product>
                 {
-                    new Product { Name = "Каска Petzl", Category = "Безопасность", Price = 4500, ImageFile = "" },
-                    new Product { Name = "Верёвка 60м", Category = "Верёвки", Price = 12500, ImageFile = "" },
-                    new Product { Name = "Карабин HMS", Category = "Железо", Price = 900, ImageFile = "" },
+                    new Product
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        Name = "Каска Petzl",
+                        Category = "Безопасность",
+                        Price = 4500,
+                        ImageFile = ""
+                    },
+                    new Product
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        Name = "Верёвка 60м",
+                        Category = "Верёвки",
+                        Price = 12500,
+                        ImageFile = ""
+                    },
+                    new Product
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        Name = "Карабин HMS",
+                        Category = "Железо",
+                        Price = 900,
+                        ImageFile = ""
+                    }
                 });
 
                 await SaveProductsAsync();
             }
             else
             {
+                // на случай, если старые товары были без Id
+                foreach (var product in products)
+                {
+                    if (string.IsNullOrWhiteSpace(product.Id))
+                        product.Id = Guid.NewGuid().ToString();
+                }
+
                 Products = new ObservableCollection<Product>(products);
+                await SaveProductsAsync();
             }
 
-            
+            // CARTS
             var carts = await LoadAsync<Dictionary<string, List<Cart>>>(CartsFile);
             Carts = carts ?? new Dictionary<string, List<Cart>>();
         }
@@ -100,8 +129,9 @@ namespace AlpineShop.Models
             return JsonSerializer.Deserialize<T>(json, Options);
         }
 
+        // ===== CART METHODS =====
 
-public static List<Cart> GetCart(string login)
+        public static List<Cart> GetCart(string login)
         {
             if (!Carts.TryGetValue(login, out var cart))
             {
@@ -115,18 +145,23 @@ public static List<Cart> GetCart(string login)
         {
             var cart = GetCart(login);
 
-            var existing = cart.FirstOrDefault(x => x.ProductName == product.Name && x.Price == product.Price);
+            var existing = cart.FirstOrDefault(x => x.ProductId == product.Id);
             if (existing != null)
+            {
                 existing.Quantity++;
+            }
             else
+            {
                 cart.Add(new Cart
                 {
+                    ProductId = product.Id,
                     ProductName = product.Name,
                     Category = product.Category,
                     Price = product.Price,
                     ImageFile = product.ImageFile,
                     Quantity = 1
                 });
+            }
 
             await SaveCartsAsync();
         }
@@ -142,10 +177,7 @@ public static List<Cart> GetCart(string login)
         {
             var cart = GetCart(login);
 
-            var found = cart.FirstOrDefault(x =>
-                x.ProductName == item.ProductName &&
-                x.Price == item.Price &&
-                x.ImageFile == item.ImageFile);
+            var found = cart.FirstOrDefault(x => x.ProductId == item.ProductId);
 
             if (found == null) return;
 
@@ -161,6 +193,23 @@ public static List<Cart> GetCart(string login)
         {
             GetCart(login).Clear();
             await SaveCartsAsync();
+        }
+
+        // ===== LINK CHECK =====
+
+        public static bool IsProductLinked(string productId)
+        {
+            return Carts.Values.Any(cart => cart.Any(item => item.ProductId == productId));
+        }
+
+        public static async Task<bool> DeleteProductAsync(Product product)
+        {
+            if (IsProductLinked(product.Id))
+                return false;
+
+            Products.Remove(product);
+            await SaveProductsAsync();
+            return true;
         }
     }
 }

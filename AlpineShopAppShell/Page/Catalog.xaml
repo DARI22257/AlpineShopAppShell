@@ -20,9 +20,9 @@
                 <Button Text="Выйти"
                     Clicked="OnLogoutClicked"/>
 
+
             </HorizontalStackLayout>
 
-            <Button x:Name="AddButton" Text="Добавить товар"  IsVisible="{Binding Source={x:Reference CatalogPage}, Path=IsAdmin}" Clicked="OnAddClicked"/>
 
             <CollectionView x:Name="ProductsView" ItemsLayout="VerticalGrid, 2"  Margin="5" SelectionMode="None">
 
@@ -47,6 +47,7 @@
                                     <Button Text="Редактировать" Padding="8,4" Clicked="OnEditClicked" CommandParameter="{Binding .}" />
 
                                     <Button Text="Удалить" Padding="8,4" Clicked="OnDeleteClicked" CommandParameter="{Binding .}" />
+                                    <Button x:Name="AddButton" Text="Добавить товар" IsVisible="{Binding Source={x:Reference CatalogPage}}" Clicked="OnAddClicked" />
                                 </HorizontalStackLayout>
 
                                 <!-- Кнопка пользователя -->

@@ -7,7 +7,7 @@ public partial class CartPage : ContentPage
 {
     private readonly string _login;
 
-    public CartPage(string login)
+    public CartPage()
     {
         InitializeComponent();
         _login = AlpineShopAppShell.AppShell.CurrentLogin;
